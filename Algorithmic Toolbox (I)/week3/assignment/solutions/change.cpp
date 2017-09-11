@@ -5,6 +5,8 @@ int get_change(int m) {
     return m;
 }
 
+void test_solution() {}
+
 int main() {
     int m;
     std::cin >> m;
