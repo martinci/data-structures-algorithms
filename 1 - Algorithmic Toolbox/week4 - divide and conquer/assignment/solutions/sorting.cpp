@@ -37,15 +37,18 @@ struct Pair {
 
 Pair partition3(vector<int> &a, int l, int r) {
     int x = a[l]; // x is the pivot
-    int j = l;    // tracks "less" block
+    int j = -1;   // tracks "less" block
     int k = l;    // tracks "equal" block
     for (int i = l + 1; i <= r; i++) {
         if (a[i] == x) { // swap with the element right above the equal block
             k++;
             std::swap(a[i], a[k]);
         } else if (a[i] < x) { // swap below equal block, then fix equal block
-            if (j != -1)
+            if (j != -1) {
                 j++;
+            } else {
+                j = l;
+            }
             std::swap(a[i], a[j]);
             k++;
             std::swap(a[i], a[k]);
@@ -82,5 +85,5 @@ int main() {
     for (size_t i = 0; i < a.size(); ++i) {
         std::cout << a[i] << ' ';
     }
-    // std::cin >> n;
+    std::cin >> n;
 }

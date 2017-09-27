@@ -9,12 +9,12 @@ int binary_search(const vector<int> &a, int x, int lo, int hi) {
     if (lo > hi) {
         return -1;
     }
-    int mid = (int)(hi - lo) / 2;
+    int mid = (int)(hi + lo) / 2;
 
-    if (a[mid] > x) {
-        return binary_search(a, x, mid + 1, hi);
-    } else if (a[mid] < x) {
+    if (x < a[mid]) {
         return binary_search(a, x, lo, mid - 1);
+    } else if (a[mid] < x) {
+        return binary_search(a, x, mid + 1, hi);
     } else {
         return mid;
     }
