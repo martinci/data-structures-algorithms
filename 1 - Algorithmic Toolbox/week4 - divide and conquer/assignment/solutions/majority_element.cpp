@@ -69,6 +69,7 @@ void test_solution() {
             for (auto e : a) {
                 std::cout << e << " ";
             }
+            break;
         } else {
             std::cout << "Ok!" << std::endl;
         }
