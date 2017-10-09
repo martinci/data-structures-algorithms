@@ -15,7 +15,7 @@ int greedy_weight(int W, const vector<int> &weights) {
 }
 
 // Helper function to output a matrix in the console.
-void display(vector<vector<int>> &matrix) {
+template <class T> void display(vector<vector<T>> &matrix) {
     for (auto &row : matrix) {
         for (auto &elem : row) {
             std::cout << elem << " ";
