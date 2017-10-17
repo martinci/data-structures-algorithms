@@ -24,19 +24,39 @@ int main() {
     getline(std::cin, text);
 
     std::stack<Bracket> opening_brackets_stack;
-    for (int position = 0; position < text.length(); ++position) {
-        char next = text[position];
-
+    int idx{0};
+    bool broken{false};
+    for (; idx < (int)text.size(); ++idx) {
+        auto next = text[idx];
         if (next == '(' || next == '[' || next == '{') {
-            // Process opening bracket, write your code here
+            Bracket lbracket{next, idx};
+            opening_brackets_stack.push(lbracket);
         }
-
         if (next == ')' || next == ']' || next == '}') {
-            // Process closing bracket, write your code here
+            if (opening_brackets_stack.empty()) {
+                // 1st priority case: unmatched closing bracket.
+                broken = true;
+                break;
+            } else {
+                auto top = opening_brackets_stack.top();
+                opening_brackets_stack.pop();
+                if (not top.Matchc(next)) {
+                    // 2nd priority case: closing the wrong opening bracket.
+                    broken = true;
+                    break;
+                }
+            }
         }
     }
 
-    // Printing answer, write your code here
+    if (broken) {
+        std::cout << idx + 1 << std::endl;
+    } else if (opening_brackets_stack.empty()) {
+        std::cout << "Success" << std::endl;
+    } else {
+        auto top = opening_brackets_stack.top();
+        std::cout << top.position + 1 << std::endl;
+    }
 
     return 0;
 }
