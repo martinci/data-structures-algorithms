@@ -22,7 +22,24 @@ class Buffer {
     Buffer(int size) : size_(size), finish_time_() {}
 
     Response Process(const Request &request) {
-        // write your code here
+        // Remove requests in the buffer that are already processed.
+        while (not finish_time_.empty() and finish_time_.front() <= request.arrival_time) {
+            finish_time_.pop();
+        }
+        Response response(false, -1);
+        if (finish_time_.size() >= size_) {
+            // buffer is full.
+            response.dropped = true;
+        } else {
+            // Compute response's start time and finish time.
+            if (finish_time_.empty()) {
+                response.start_time = request.arrival_time;
+            } else {
+                response.start_time = finish_time_.back();
+            }
+            finish_time_.push(response.start_time + request.process_time);
+        }
+        return response;
     }
 
   private:
