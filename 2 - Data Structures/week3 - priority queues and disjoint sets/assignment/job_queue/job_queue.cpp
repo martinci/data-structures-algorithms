@@ -6,43 +6,101 @@ using std::vector;
 using std::cin;
 using std::cout;
 
+struct Worker {
+    int id;
+    long long next_free_time;
+};
+
+class WorkerHeap {
+  private:
+    vector<Worker> _workers;
+
+    bool _compare(Worker a, Worker b) {
+        if (a.next_free_time != b.next_free_time) {
+            return a.next_free_time < b.next_free_time;
+        }
+        return a.id < b.id;
+    }
+
+    int _get_min_child(int idx) {
+        int left = 2 * idx + 1;
+        int right = 2 * idx + 2;
+        if (left >= _workers.size()) {
+            return idx;
+        } else if (right >= _workers.size()) {
+            return left;
+        } else {
+            return _compare(_workers[left], _workers[right]) ? left : right;
+        }
+    }
+
+    void _bubble_down(int idx) {
+        Worker worker = _workers[idx];
+        int min_child_idx = _get_min_child(idx);
+        Worker min_child = _workers[min_child_idx];
+        while (_compare(min_child, worker)) {
+            // Swap workers
+            _workers[idx] = min_child;
+            _workers[min_child_idx] = worker;
+            idx = min_child_idx;
+            min_child_idx = _get_min_child(idx);
+            min_child = _workers[min_child_idx];
+        }
+    }
+
+  public:
+    void initialize(int size) {
+        _workers.resize(size);
+        for (int i = 0; i < size; ++i) {
+            _workers[i].id = i;
+            _workers[i].next_free_time = 0;
+        }
+    }
+
+    std::pair<int, long long> process(int duration) {
+        auto &worker = _workers[0];
+        int id = worker.id;
+        long long start_time = worker.next_free_time;
+        // Equivalent to change priority in a min heap
+        worker.next_free_time += duration;
+        _bubble_down(0);
+        return {id, start_time};
+    }
+};
+
 class JobQueue {
   private:
-    int num_workers_;
-    vector<int> jobs_;
+    int _num_workers;
+    vector<int> _jobs;
+    WorkerHeap _worker_heap;
 
-    vector<int> assigned_workers_;
-    vector<long long> start_times_;
+    vector<int> _assigned_workers;
+    vector<long long> _start_times;
 
     void WriteResponse() const {
-        for (int i = 0; i < jobs_.size(); ++i) {
-            cout << assigned_workers_[i] << " " << start_times_[i] << "\n";
+        for (int i = 0; i < _jobs.size(); ++i) {
+            cout << _assigned_workers[i] << " " << _start_times[i] << "\n";
         }
     }
 
     void ReadData() {
         int m;
-        cin >> num_workers_ >> m;
-        jobs_.resize(m);
+        cin >> _num_workers >> m;
+        // Initialize worker min heap.
+        _worker_heap.initialize(_num_workers);
+        _jobs.resize(m);
         for (int i = 0; i < m; ++i)
-            cin >> jobs_[i];
+            cin >> _jobs[i];
     }
 
     void AssignJobs() {
-        // TODO: replace this code with a faster algorithm.
-        assigned_workers_.resize(jobs_.size());
-        start_times_.resize(jobs_.size());
-        vector<long long> next_free_time(num_workers_, 0);
-        for (int i = 0; i < jobs_.size(); ++i) {
-            int duration = jobs_[i];
-            int next_worker = 0;
-            for (int j = 0; j < num_workers_; ++j) {
-                if (next_free_time[j] < next_free_time[next_worker])
-                    next_worker = j;
-            }
-            assigned_workers_[i] = next_worker;
-            start_times_[i] = next_free_time[next_worker];
-            next_free_time[next_worker] += duration;
+        _assigned_workers.resize(_jobs.size());
+        _start_times.resize(_jobs.size());
+        for (int i = 0; i < _jobs.size(); ++i) {
+            int duration = _jobs[i];
+            auto result = _worker_heap.process(duration);
+            _assigned_workers[i] = result.first;
+            _start_times[i] = result.second;
         }
     }
 
@@ -55,7 +113,6 @@ class JobQueue {
 };
 
 int main() {
-    std::ios_base::sync_with_stdio(false);
     JobQueue job_queue;
     job_queue.Solve();
     return 0;
