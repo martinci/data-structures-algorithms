@@ -45,6 +45,7 @@ struct DisjointSets {
             // merge two components
             source.parent = realDestination;
             destination.size += source.size;
+            // source only contains a symlink after merge
             source.size = 0;
             // update max_table_size
             max_table_size = max(max_table_size, destination.size);
