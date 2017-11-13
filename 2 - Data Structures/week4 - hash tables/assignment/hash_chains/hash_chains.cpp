@@ -1,81 +1,115 @@
+#include <algorithm>
 #include <iostream>
+#include <list>
 #include <string>
 #include <vector>
-#include <algorithm>
-
-using std::string;
-using std::vector;
-using std::cin;
 
 struct Query {
-    string type, s;
-    size_t ind;
+    std::string type, s;
+    size_t idx;
 };
 
-class QueryProcessor {
-    int bucket_count;
-    // store all strings in one vector
-    vector<string> elems;
-    size_t hash_func(const string& s) const {
-        static const size_t multiplier = 263;
-        static const size_t prime = 1000000007;
-        unsigned long long hash = 0;
-        for (int i = static_cast<int> (s.size()) - 1; i >= 0; --i)
-            hash = (hash * multiplier + s[i]) % prime;
-        return hash % bucket_count;
+class HashTable {
+  private:
+    std::vector<std::list<std::string>> _buckets;
+    int _m; // number of buckets for the hash table
+
+    int _hash(std::string s) {
+        long long p{1000000007};
+        int x{263};
+        long long hash{0};
+        // hash = sum(s[i] * x^i mod p) mod m
+        for (int i = s.size() - 1; i >= 0; --i) {
+            hash = (hash * x + s[i]) % p;
+        }
+        return hash % this->_m;
     }
 
-public:
-    explicit QueryProcessor(int bucket_count): bucket_count(bucket_count) {}
-
-    Query readQuery() const {
-        Query query;
-        cin >> query.type;
-        if (query.type != "check")
-            cin >> query.s;
-        else
-            cin >> query.ind;
-        return query;
+    bool _find_in_list(std::list<std::string> &lst, std::string s) {
+        // Try to find s in the list
+        auto it = std::find(lst.begin(), lst.end(), s);
+        return it != lst.end();
     }
 
-    void writeSearchResult(bool was_found) const {
-        std::cout << (was_found ? "yes\n" : "no\n");
-    }
+  public:
+    HashTable(int size) : _buckets(size), _m(size) {}
 
-    void processQuery(const Query& query) {
-        if (query.type == "check") {
-            // use reverse order, because we append strings to the end
-            for (int i = static_cast<int>(elems.size()) - 1; i >= 0; --i)
-                if (hash_func(elems[i]) == query.ind)
-                    std::cout << elems[i] << " ";
-            std::cout << "\n";
-        } else {
-            vector<string>::iterator it = std::find(elems.begin(), elems.end(), query.s);
-            if (query.type == "find")
-                writeSearchResult(it != elems.end());
-            else if (query.type == "add") {
-                if (it == elems.end())
-                    elems.push_back(query.s);
-            } else if (query.type == "del") {
-                if (it != elems.end())
-                    elems.erase(it);
-            }
+    void add(std::string s) {
+        int hvalue = _hash(s);
+        auto &lst = _buckets[hvalue];
+        bool found = _find_in_list(lst, s);
+        if (not found) {
+            lst.push_front(s);
         }
     }
 
-    void processQueries() {
-        int n;
-        cin >> n;
-        for (int i = 0; i < n; ++i)
-            processQuery(readQuery());
+    void del(std::string s) {
+        int hvalue = _hash(s);
+        auto &lst = _buckets[hvalue];
+        auto it = std::find(lst.begin(), lst.end(), s);
+        if (it != lst.end()) {
+            lst.erase(it);
+        }
+    }
+
+    void find(std::string s) {
+        int hvalue = _hash(s);
+        auto &lst = _buckets[hvalue];
+        bool found = _find_in_list(lst, s);
+        std::cout << (found ? "yes" : "no") << std::endl;
+    }
+
+    void check(size_t idx) {
+        auto &lst = _buckets[idx];
+        for (auto &e : lst) {
+            std::cout << e << " ";
+        }
+        std::cout << std::endl;
     }
 };
 
+std::vector<Query> read_queries() {
+    int n;
+    std::cin >> n;
+    std::vector<Query> queries(n);
+    for (auto &query : queries) {
+        std::cin >> query.type;
+        if (query.type == "check") {
+            std::cin >> query.idx;
+        } else {
+            std::cin >> query.s;
+        }
+    }
+    return queries;
+}
+
+void process_queries(std::vector<Query> &queries, HashTable &table) {
+    for (auto &query : queries) {
+        std::string op = query.type;
+        if (op == "add") {
+            table.add(query.s);
+        } else if (op == "del") {
+            table.del(query.s);
+        } else if (op == "find") {
+            table.find(query.s);
+        } else {
+            table.check(query.idx);
+        }
+    }
+}
+
+void display(std::vector<Query> queries) {
+    for (auto query : queries) {
+        std::cout << query.type << "\t" << query.s << "\t" << query.idx << std::endl;
+    }
+}
+
 int main() {
-    std::ios_base::sync_with_stdio(false);
-    int bucket_count;
-    cin >> bucket_count;
-    QueryProcessor proc(bucket_count);
-    proc.processQueries();
+    int m;
+    std::cin >> m;
+    HashTable table(m);
+    std::vector<Query> queries = read_queries();
+    // display(queries);
+    process_queries(queries, table);
     return 0;
 }

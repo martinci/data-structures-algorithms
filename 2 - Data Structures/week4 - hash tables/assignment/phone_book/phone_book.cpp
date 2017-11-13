@@ -1,72 +1,73 @@
 #include <iostream>
-#include <vector>
 #include <string>
-
-using std::string;
-using std::vector;
-using std::cin;
+#include <vector>
 
 struct Query {
-    string type, name;
+    std::string type, name;
     int number;
 };
 
-vector<Query> read_queries() {
+class PhoneBook {
+  private:
+    std::vector<std::string> _data;
+
+  public:
+    PhoneBook() : _data(1e7) {
+        for (int i = 0; i < 1e7; ++i) {
+            this->_data[i] = "";
+        }
+    }
+
+    void add_entry(int number, std::string name) { _data[number] = name; }
+
+    void del_number(int number) { _data[number] = ""; }
+
+    void find(int number) {
+        std::string name{_data[number]};
+        if (name == "") {
+            std::cout << "not found" << std::endl;
+        } else {
+            std::cout << name << std::endl;
+        }
+    }
+};
+
+std::vector<Query> read_queries() {
     int n;
-    cin >> n;
-    vector<Query> queries(n);
-    for (int i = 0; i < n; ++i) {
-        cin >> queries[i].type;
-        if (queries[i].type == "add")
-            cin >> queries[i].number >> queries[i].name;
-        else
-            cin >> queries[i].number;
+    std::cin >> n;
+    std::vector<Query> queries(n);
+    for (auto &query : queries) {
+        std::cin >> query.type >> query.number;
+        if (query.type == "add") {
+            std::cin >> query.name;
+        }
     }
     return queries;
 }
 
-void write_responses(const vector<string>& result) {
-    for (size_t i = 0; i < result.size(); ++i)
-        std::cout << result[i] << "\n";
+void process_queries(std::vector<Query> &queries, PhoneBook &pbook) {
+    for (auto &query : queries) {
+        std::string op = query.type;
+        if (op == "add") {
+            pbook.add_entry(query.number, query.name);
+        } else if (op == "del") {
+            pbook.del_number(query.number);
+        } else {
+            pbook.find(query.number);
+        }
+    }
 }
 
-vector<string> process_queries(const vector<Query>& queries) {
-    vector<string> result;
-    // Keep list of all existing (i.e. not deleted yet) contacts.
-    vector<Query> contacts;
-    for (size_t i = 0; i < queries.size(); ++i)
-        if (queries[i].type == "add") {
-            bool was_founded = false;
-            // if we already have contact with such number,
-            // we should rewrite contact's name
-            for (size_t j = 0; j < contacts.size(); ++j)
-                if (contacts[j].number == queries[i].number) {
-                    contacts[j].name = queries[i].name;
-                    was_founded = true;
-                    break;
-                }
-            // otherwise, just add it
-            if (!was_founded)
-                contacts.push_back(queries[i]);
-        } else if (queries[i].type == "del") {
-            for (size_t j = 0; j < contacts.size(); ++j)
-                if (contacts[j].number == queries[i].number) {
-                    contacts.erase(contacts.begin() + j);
-                    break;
-                }
-        } else {
-            string response = "not found";
-            for (size_t j = 0; j < contacts.size(); ++j)
-                if (contacts[j].number == queries[i].number) {
-                    response = contacts[j].name;
-                    break;
-                }
-            result.push_back(response);
-        }
-    return result;
+void display(std::vector<Query> queries) {
+    for (auto query : queries) {
+        std::cout << query.type << "\t" << query.number << "\t" << query.name << std::endl;
+    }
 }
 
 int main() {
-    write_responses(process_queries(read_queries()));
+    std::vector<Query> queries = read_queries();
+    // display(queries);
+    PhoneBook pbook;
+    process_queries(queries, pbook);
     return 0;
 }
