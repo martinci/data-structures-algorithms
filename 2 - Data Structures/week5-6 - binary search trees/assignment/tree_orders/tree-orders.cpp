@@ -1,101 +1,109 @@
 #include <iostream>
+#include <set>
+#include <stack>
 #include <vector>
-#include <algorithm>
-#if defined(__unix__) || defined(__APPLE__)
-#include <sys/resource.h>
-#endif
 
-using std::vector;
-using std::ios_base;
-using std::cin;
-using std::cout;
-
-class TreeOrders {
-  int n;
-  vector <int> key;
-  vector <int> left;
-  vector <int> right;
-
-public:
-  void read() {
-    cin >> n;
-    key.resize(n);
-    left.resize(n);
-    right.resize(n);
-    for (int i = 0; i < n; i++) {
-      cin >> key[i] >> left[i] >> right[i];
+template <class T> void display(const std::vector<T> vec) {
+    for (auto &e : vec) {
+        std::cout << e << " ";
     }
-  }
+    std::cout << std::endl;
+}
 
+class BinaryTree {
+  private:
+    std::vector<int> key;
+    std::vector<int> left;
+    std::vector<int> right;
 
-  vector <int> in_order() {
-    vector<int> result;
-    // Finish the implementation
-    // You may need to add a new recursive method to do that
+  public:
+    void read_input() {
+        int n;
+        std::cin >> n;
+        key.resize(n);
+        left.resize(n);
+        right.resize(n);
+        for (int i = 0; i < n; ++i) {
+            std::cin >> key[i] >> left[i] >> right[i];
+        }
+    }
 
-    return result;
-  }
+    std::vector<int> in_order_traversal() {
+        std::vector<int> result;
+        std::set<int> processed;
+        std::stack<int> to_process;
+        // Initialize
+        processed.insert(-1);
+        to_process.push(0);
+        while (not to_process.empty()) {
+            auto idx = to_process.top();
+            if (processed.find(left[idx]) != processed.end()) {
+                result.push_back(key[idx]);
+                processed.insert(idx);
+                to_process.pop();
+                if (right[idx] != -1) {
+                    to_process.push(right[idx]);
+                }
+            } else {
+                to_process.push(left[idx]);
+            }
+        }
+        return result;
+    }
 
-  vector <int> pre_order() {
-    vector<int> result;    
-    // Finish the implementation
-    // You may need to add a new recursive method to do that
-    
-    return result;
-  }
+    std::vector<int> pre_order_traversal() {
+        std::vector<int> result;
+        std::stack<int> to_process;
+        // Initialize
+        to_process.push(0);
+        while (not to_process.empty()) {
+            auto idx = to_process.top();
+            result.push_back(key[idx]);
+            to_process.pop();
+            if (right[idx] != -1) {
+                to_process.push(right[idx]);
+            }
+            if (left[idx] != -1) {
+                to_process.push(left[idx]);
+            }
+        }
+        return result;
+    }
 
-  vector <int> post_order() {
-    vector<int> result;
-    // Finish the implementation
-    // You may need to add a new recursive method to do that
-    
-    return result;
-  }
+    std::vector<int> post_order_traversal() {
+        std::vector<int> result;
+        std::set<int> processed;
+        std::stack<int> to_process;
+        // Initialize
+        processed.insert(-1);
+        to_process.push(0);
+        while (not to_process.empty()) {
+            auto idx = to_process.top();
+            bool flag{true};
+            if (processed.find(right[idx]) == processed.end()) {
+
+                to_process.push(right[idx]);
+                flag = false;
+            }
+            if (processed.find(left[idx]) == processed.end()) {
+                to_process.push(left[idx]);
+                flag = false;
+            }
+            if (flag) {
+                result.push_back(key[idx]);
+                to_process.pop();
+                processed.insert(idx);
+            }
+        }
+        return result;
+    }
 };
 
-void print(vector <int> a) {
-  for (size_t i = 0; i < a.size(); i++) {
-    if (i > 0) {
-      cout << ' ';
-    }
-    cout << a[i];
-  }
-  cout << '\n';
+int main() {
+    BinaryTree t;
+    t.read_input();
+    display(t.in_order_traversal());
+    display(t.pre_order_traversal());
+    display(t.post_order_traversal());
+    return 0;
 }
-
-int main_with_large_stack_space() {
-  ios_base::sync_with_stdio(0);
-  TreeOrders t;
-  t.read();
-  print(t.in_order());
-  print(t.pre_order());
-  print(t.post_order());
-  return 0;
-}
-
-int main (int argc, char **argv)
-{
-#if defined(__unix__) || defined(__APPLE__)
-  // Allow larger stack space
-  const rlim_t kStackSize = 16 * 1024 * 1024;   // min stack size = 16 MB
-  struct rlimit rl;
-  int result;
-
-  result = getrlimit(RLIMIT_STACK, &rl);
-  if (result == 0)
-  {
-      if (rl.rlim_cur < kStackSize)
-      {
-          rl.rlim_cur = kStackSize;
-          result = setrlimit(RLIMIT_STACK, &rl);
-          if (result != 0)
-          {
-              std::cerr << "setrlimit returned result = " << result << std::endl;
-          }
-      }
-  }
-#endif
-
-  return main_with_large_stack_space();
-}
-
