@@ -8,18 +8,7 @@ class DiGraph {
     std::vector<std::vector<int>> _adj;
     size_t _size{0};
 
-    void _explore(const int node, std::set<int> &visited) {
-        // pre-visit
-        visited.insert(node);
-        for (auto a : this->_adj[node]) {
-            if (visited.find(a) == visited.end()) {
-                this->_explore(a, visited);
-            }
-        }
-        // post-visit
-    }
-
-    void _explore_cycles(const int node, std::set<int> &visited, std::set<int> &path) {
+    void _explore(const int node, std::set<int> &visited, std::set<int> &path) {
         // pre-visit
         // std::cout << node << std::endl;
         visited.insert(node);
@@ -31,7 +20,7 @@ class DiGraph {
                 throw std::logic_error("There is a cycle!");
             }
             if (visited.find(a) == visited.end()) {
-                this->_explore_cycles(a, visited, path);
+                this->_explore(a, visited, path);
             }
         }
         // post-visit
@@ -64,22 +53,6 @@ class DiGraph {
 
     bool empty() { return this->_size == 0; }
 
-    int number_of_components() {
-        if (this->empty()) {
-            return 0;
-        }
-        // explore the graph depth first recursively
-        std::set<int> visited;
-        int ncomponents = 1;
-        for (int node = 0; node < this->_size; ++node) {
-            if (visited.find(node) == visited.end()) {
-                this->_explore(node, visited);
-            }
-            ncomponents++;
-        }
-        return ncomponents;
-    }
-
     bool is_acyclic() {
         // perform dfs recursively
         std::set<int> visited;
@@ -89,7 +62,7 @@ class DiGraph {
             if (visited.find(node) == visited.end()) {
                 // std::cout << "New component! " << node << std::endl;
                 try {
-                    this->_explore_cycles(node, visited, path);
+                    this->_explore(node, visited, path);
                 } catch (std::logic_error &err) {
                     // found a cycle
                     return false;
