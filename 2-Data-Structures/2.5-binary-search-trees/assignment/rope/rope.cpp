@@ -2,17 +2,20 @@
 #include <iostream>
 #include <string>
 
+const bool DEBUG = true;
+
 // Splay tree implementation
 
 // Vertex of a splay tree
 struct Vertex {
-    int key;
+    char key;
+    // Include size to be able to compute order statistics of the key values.
     int size;
     Vertex *left;
     Vertex *right;
     Vertex *parent;
 
-    Vertex(int key, int size, Vertex *left, Vertex *right, Vertex *parent)
+    Vertex(char key, int size, Vertex *left, Vertex *right, Vertex *parent)
         : key(key), size(size), left(left), right(right), parent(parent) {}
 };
 
@@ -20,7 +23,6 @@ void update(Vertex *v) {
     if (v == NULL)
         return;
     v->size = 1 + (v->left != NULL ? v->left->size : 0) + (v->right != NULL ? v->right->size : 0);
-    ;
     if (v->left != NULL) {
         v->left->parent = v;
     }
@@ -87,37 +89,35 @@ void splay(Vertex *&root, Vertex *v) {
     root = v;
 }
 
-// Searches for the given key in the tree with the given root
-// and calls splay for the deepest visited node after that.
-// If found, returns a pointer to the node with the given key.
-// Otherwise, returns a pointer to the node with the smallest
-// bigger key (next value in the order).
-// If the key is bigger than all keys in the tree,
-// returns NULL.
-Vertex *find(Vertex *&root, int key) {
+// Returns the kth element of the splay treee (according to in order traversal)
+// k is in [1, size]
+Vertex *order_stat(Vertex *&root, int k) {
     Vertex *v = root;
     Vertex *last = root;
-    Vertex *next = NULL;
+
     while (v != NULL) {
-        if (v->key >= key && (next == NULL || v->key < next->key)) {
-            next = v;
-        }
+        int s{0};
+
         last = v;
-        if (v->key == key) {
-            break;
+        if (v->left != NULL) {
+            s = v->left->size;
         }
-        if (v->key < key) {
-            v = v->right;
-        } else {
+        if (k == s + 1) {
+            // current node is the one
+            break;
+        } else if (k < s + 1) {
             v = v->left;
+        } else {
+            v = v->right;
         }
     }
+
     splay(root, last);
-    return next;
+    return v;
 }
 
-void split(Vertex *root, int key, Vertex *&left, Vertex *&right) {
-    right = find(root, key);
+void split(Vertex *root, int k, Vertex *&left, Vertex *&right) {
+    right = order_stat(root, k);
     splay(root, right);
     if (right == NULL) {
         left = root;
@@ -149,56 +149,62 @@ Vertex *merge(Vertex *left, Vertex *right) {
 
 class Rope {
     std::string s;
-    Vertex *root = NULL;
+    Vertex *root;
 
-    void insert(int idx) {
-        Vertex *left = NULL;
-        Vertex *right = NULL;
+    void insert(char c) {
         Vertex *new_vertex = NULL;
-        split(root, idx, left, right);
-        if (right == NULL || right->key != idx) {
-            new_vertex = new Vertex(idx, 1, NULL, NULL, NULL);
-        }
-        root = merge(merge(left, new_vertex), right);
+        new_vertex = new Vertex(c, 1, NULL, NULL, NULL);
+        root = merge(root, new_vertex);
     }
 
-    Vertex *get_kth_char(Vertex *root, int k) {
-        int s = root->left->size;
-        if (k == s + 1) {
-            return root;
-        } else if (k < s + 1) {
-            return get_kth_char(root->left, k);
-        } else {
-            return get_kth_char(root->right, k);
+    void traverse_print(Vertex *node) {
+        // In order search of the spaly tree
+        if (node == NULL) {
+            return;
         }
+        traverse_print(node->left);
+        // output original character
+        std::cout << node->key;
+        traverse_print(node->right);
     }
 
   public:
-    Rope(const std::string &s) : s(s) {
-        for (int idx = 0; idx < s.size(); ++idx) {
-            insert(idx);
+    Rope(const std::string &s) : root(NULL) {
+        for (auto ch : s) {
+            insert(ch);
         }
     }
 
     void process(int i, int j, int k) {
-        // Replace this code with a faster implementation
+        // We use splay trees to edit the string
         Vertex *left = NULL;
         Vertex *middle = NULL;
         Vertex *right = NULL;
-        split(root, i, left, middle);
-        split(middle, j + 1, middle, right);
+
+        // Cut out s[i..j] into middle
+        split(root, j + 2, middle, right);
+        split(middle, i + 1, left, middle);
         root = merge(left, right);
-        auto node = get_kth_char(root, k);
-        split(root, node->key, left, right);
+
+        // Open up the string at the kth character, -1 bc we want to insert on the right.
+        if (k != 0) {
+            split(root, k - 1, left, right);
+            root = merge(merge(left, middle), right);
+        } else {
+            // Special case k=0, prepend middle to the rooot
+            root = merge(middle, root);
+        }
     }
 
     void process_slow(int i, int j, int k) {
-        // Replace this code with a faster implementation
         std::string t = s.substr(0, i) + s.substr(j + 1);
         s = t.substr(0, k) + s.substr(i, j - i + 1) + t.substr(k);
     }
 
-    std::string result() { return s; }
+    void print() {
+        traverse_print(root);
+        std::cout << std::endl;
+    }
 };
 
 int main() {
@@ -206,6 +212,9 @@ int main() {
     std::string s;
     std::cin >> s;
     Rope rope(s);
+
+    rope.print();
+
     int actions;
     std::cin >> actions;
     for (int action_index = 0; action_index < actions; ++action_index) {
@@ -213,5 +222,5 @@ int main() {
         std::cin >> i >> j >> k;
         rope.process(i, j, k);
     }
-    std::cout << rope.result() << std::endl;
+    rope.print();
 }
