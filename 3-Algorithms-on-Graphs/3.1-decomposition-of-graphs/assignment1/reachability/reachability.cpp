@@ -4,10 +4,10 @@
 #include <vector>
 
 class Graph {
-    std::vector<std::vector<int>> _adj;
+    std::vector<std::vector<int>> adj;
 
   public:
-    Graph(int n) : _adj(n, std::vector<int>()) {}
+    Graph(int n) : adj(n, std::vector<int>()) {}
 
     void add_edges(const int m) {
         for (int j = 0; j < m; ++j) {
@@ -15,8 +15,8 @@ class Graph {
             std::cin >> s >> t;
             // we use 0 index instead of 1 index
             // undirected graph, need to add both adjacencies
-            this->_adj[s - 1].push_back(t - 1);
-            this->_adj[t - 1].push_back(s - 1);
+            this->adj[s - 1].push_back(t - 1);
+            this->adj[t - 1].push_back(s - 1);
         }
     }
 
@@ -35,7 +35,7 @@ class Graph {
             to_explore.pop();
             visited.insert(curr);
             // add unvisited neighbors to to_explore
-            for (auto node : this->_adj[curr]) {
+            for (auto node : this->adj[curr]) {
                 if (visited.count(node) == 0) {
                     to_explore.push(node);
                 }

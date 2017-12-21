@@ -5,7 +5,7 @@
 
 // Class for directed Graphs
 class DiGraph {
-    std::vector<std::vector<int>> _adj;
+    std::vector<std::vector<int>> adj;
     size_t _size{0};
 
     void _explore(const int node, std::set<int> &visited, std::set<int> &path) {
@@ -13,7 +13,7 @@ class DiGraph {
         // std::cout << node << std::endl;
         visited.insert(node);
         path.insert(node);
-        for (auto a : this->_adj[node]) {
+        for (auto a : this->adj[node]) {
             if (path.find(a) != path.end()) {
                 // node already exist in the path, we found cycle!
                 // std::cout << "cycle!" << std::endl;
@@ -28,14 +28,14 @@ class DiGraph {
     }
 
   public:
-    DiGraph(size_t size) : _adj(size, std::vector<int>()), _size(size) {}
+    DiGraph(size_t size) : adj(size, std::vector<int>()), _size(size) {}
 
     void add_edges(const size_t m) {
         for (size_t j = 0; j < m; ++j) {
             size_t s, t;
             std::cin >> s >> t;
             // we use 0 index instead of 1 index
-            this->_adj[s - 1].push_back(t - 1);
+            this->adj[s - 1].push_back(t - 1);
         }
     }
 
@@ -44,7 +44,7 @@ class DiGraph {
         std::cout << "Adjacencies: " << std::endl;
         for (size_t node = 0; node < this->_size; ++node) {
             std::cout << node + 1 << " -> ";
-            for (auto a : this->_adj[node]) {
+            for (auto a : this->adj[node]) {
                 std::cout << a + 1 << " ";
             }
             std::cout << std::endl;
