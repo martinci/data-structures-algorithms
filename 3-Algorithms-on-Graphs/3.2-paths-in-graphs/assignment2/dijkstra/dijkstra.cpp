@@ -36,11 +36,8 @@ class WeightedDiGraph {
 
     // Dijkstra's algorithm to compute weighted distance fron node s
     std::vector<int> dijkstra(const int s) {
-        std::vector<int> dist(adj.size());
         // initialize distances to "infinity"
-        for (int i = 0; i < adj.size(); ++i) {
-            dist[i] = std::numeric_limits<int>::max();
-        }
+        std::vector<int> dist(adj.size(), std::numeric_limits<int>::max());
         dist[s] = 0;
 
         // keep nodes to be processed in a priority queue, heart of Dijkstra's algorithm
