@@ -17,21 +17,21 @@ struct Vertex {
 };
 
 void update(Vertex *v) {
-    if (v == NULL)
+    if (v == nullptr)
         return;
-    v->sum =
-        v->key + (v->left != NULL ? v->left->sum : 0ll) + (v->right != NULL ? v->right->sum : 0ll);
-    if (v->left != NULL) {
+    v->sum = v->key + (v->left != nullptr ? v->left->sum : 0ll) +
+             (v->right != nullptr ? v->right->sum : 0ll);
+    if (v->left != nullptr) {
         v->left->parent = v;
     }
-    if (v->right != NULL) {
+    if (v->right != nullptr) {
         v->right->parent = v;
     }
 }
 
 void small_rotation(Vertex *v) {
     Vertex *parent = v->parent;
-    if (parent == NULL) {
+    if (parent == nullptr) {
         return;
     }
     Vertex *grandparent = v->parent->parent;
@@ -47,7 +47,7 @@ void small_rotation(Vertex *v) {
     update(parent);
     update(v);
     v->parent = grandparent;
-    if (grandparent != NULL) {
+    if (grandparent != nullptr) {
         if (grandparent->left == parent) {
             grandparent->left = v;
         } else {
@@ -75,10 +75,10 @@ void big_rotation(Vertex *v) {
 // Makes splay of the given vertex and makes
 // it the new root.
 void splay(Vertex *&root, Vertex *v) {
-    if (v == NULL)
+    if (v == nullptr)
         return;
-    while (v->parent != NULL) {
-        if (v->parent->parent == NULL) {
+    while (v->parent != nullptr) {
+        if (v->parent->parent == nullptr) {
             small_rotation(v);
             break;
         }
@@ -93,13 +93,13 @@ void splay(Vertex *&root, Vertex *v) {
 // Otherwise, returns a pointer to the node with the smallest
 // bigger key (next value in the order).
 // If the key is bigger than all keys in the tree,
-// returns NULL.
+// returns nullptr.
 Vertex *find(Vertex *&root, int key) {
     Vertex *v = root;
     Vertex *last = root;
-    Vertex *next = NULL;
-    while (v != NULL) {
-        if (v->key >= key && (next == NULL || v->key < next->key)) {
+    Vertex *next = nullptr;
+    while (v != nullptr) {
+        if (v->key >= key && (next == nullptr || v->key < next->key)) {
             next = v;
         }
         last = v;
@@ -119,26 +119,26 @@ Vertex *find(Vertex *&root, int key) {
 void split(Vertex *root, int key, Vertex *&left, Vertex *&right) {
     right = find(root, key);
     splay(root, right);
-    if (right == NULL) {
+    if (right == nullptr) {
         left = root;
         return;
     }
     left = right->left;
-    right->left = NULL;
-    if (left != NULL) {
-        left->parent = NULL;
+    right->left = nullptr;
+    if (left != nullptr) {
+        left->parent = nullptr;
     }
     update(left);
     update(right);
 }
 
 Vertex *merge(Vertex *left, Vertex *right) {
-    if (left == NULL)
+    if (left == nullptr)
         return right;
-    if (right == NULL)
+    if (right == nullptr)
         return left;
     Vertex *min_right = right;
-    while (min_right->left != NULL) {
+    while (min_right->left != nullptr) {
         min_right = min_right->left;
     }
     splay(right, min_right);
@@ -149,15 +149,15 @@ Vertex *merge(Vertex *left, Vertex *right) {
 
 // Code that uses splay tree to solve the problem
 
-Vertex *root = NULL;
+Vertex *root = nullptr;
 
 void insert(int x) {
-    Vertex *left = NULL;
-    Vertex *right = NULL;
-    Vertex *new_vertex = NULL;
+    Vertex *left = nullptr;
+    Vertex *right = nullptr;
+    Vertex *new_vertex = nullptr;
     split(root, x, left, right);
-    if (right == NULL || right->key != x) {
-        new_vertex = new Vertex(x, x, NULL, NULL, NULL);
+    if (right == nullptr || right->key != x) {
+        new_vertex = new Vertex(x, x, nullptr, nullptr, nullptr);
     }
     root = merge(merge(left, new_vertex), right);
 }
@@ -165,33 +165,33 @@ void insert(int x) {
 void erase(int x) {
     // Implement erase yourself
     auto res = find(root, x);
-    if (res != NULL and res->key == x) {
+    if (res != nullptr and res->key == x) {
         // res points to node with key x
-        Vertex *left = NULL;
-        Vertex *middle = NULL;
-        Vertex *right = NULL;
+        Vertex *left = nullptr;
+        Vertex *middle = nullptr;
+        Vertex *right = nullptr;
         split(root, x, left, middle);
         split(middle, x + 1, middle, right);
         root = merge(left, right);
-        middle = NULL;
+        middle = nullptr;
     }
 }
 
 bool find(int x) {
     // Implement find yourself
     auto res = find(root, x);
-    return (res != NULL and res->key == x);
+    return (res != nullptr and res->key == x);
 }
 
 long long sum(int from, int to) {
-    Vertex *left = NULL;
-    Vertex *middle = NULL;
-    Vertex *right = NULL;
+    Vertex *left = nullptr;
+    Vertex *middle = nullptr;
+    Vertex *right = nullptr;
     split(root, from, left, middle);
     split(middle, to + 1, middle, right);
     long long ans = 0;
     // Complete the implementation of sum
-    if (middle != NULL)
+    if (middle != nullptr)
         ans = middle->sum;
     root = merge(left, merge(middle, right));
     return ans;
